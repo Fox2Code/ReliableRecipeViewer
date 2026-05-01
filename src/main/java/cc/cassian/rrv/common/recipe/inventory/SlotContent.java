@@ -48,8 +48,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.*;
 
-public class SlotContent {
-
+public final class SlotContent {
     public static final Codec<SlotContent> CODEC = RecordCodecBuilder.create(
             instance -> instance.group(
                             ItemStack.CODEC.listOf().fieldOf("id").forGetter(SlotContent::getValidContents),
@@ -69,9 +68,19 @@ public class SlotContent {
 
     private ActionType type;
 
+    private SlotContent() {
+        this.content = Collections.emptyList();
+        this.current = 0;
+
+        this.itemOrigin = ItemStack.EMPTY;
+        this.originType = ActionType.ANY;
+
+        this.type = ActionType.INPUT;
+    }
+
     private SlotContent(List<ItemStack> content) {
 
-        List<ItemStack> copied = new ArrayList<>();
+        List<ItemStack> copied = new ArrayList<>(content.size());
         content.stream().map(ItemStack::copy)
         //? fabric {
         .map(i->{
@@ -241,8 +250,8 @@ public class SlotContent {
         return this.itemTag == null ? Optional.empty() : Optional.of(this.itemTag);
     }
 
-    public static SlotContent of(){
-        return new SlotContent(List.of());
+    public static SlotContent of() {
+        return new SlotContent();
     }
 
     public static SlotContent of(Item item) {
@@ -251,7 +260,7 @@ public class SlotContent {
     }
 
     public static SlotContent of(Item... items) {
-        if (items == null) return SlotContent.of();
+        if (items == null || items.length == 0) return SlotContent.of();
         return new SlotContent(Arrays.stream(items).map(ItemStack::new).toList());
     }
 
@@ -261,12 +270,12 @@ public class SlotContent {
     }
 
     public static SlotContent of(Block... blocks) {
-        if (blocks == null) return SlotContent.of();
+        if (blocks == null || blocks.length == 0) return SlotContent.of();
         return new SlotContent(Arrays.stream(blocks).map(ItemStack::new).toList());
     }
 
     public static SlotContent ofItemList(List<Item> items) {
-        if (items == null) return SlotContent.of();
+        if (items == null || items.isEmpty()) return SlotContent.of();
         List<ItemStack> stacks = new ArrayList<>();
         items.forEach(item -> stacks.add(new ItemStack(item)));
         return SlotContent.of(stacks);
@@ -278,7 +287,7 @@ public class SlotContent {
     }
 
     public static SlotContent ofFluidList(List<FluidStack> fluidStacks) {
-        if (fluidStacks == null) return SlotContent.of();
+        if (fluidStacks == null || fluidStacks.isEmpty()) return SlotContent.of();
         List<ItemStack> stacks = new ArrayList<>();
         fluidStacks.forEach(fluidStack -> stacks.add(fluidStack.createItemStack()));
         return new SlotContent(stacks);
@@ -295,7 +304,7 @@ public class SlotContent {
     }
 
     public static SlotContent of(List<ItemStack> stacks) {
-        if (stacks == null) return SlotContent.of();
+        if (stacks == null || stacks.isEmpty()) return SlotContent.of();
         return new SlotContent(stacks);
     }
 
@@ -305,7 +314,7 @@ public class SlotContent {
     }
 
     public static SlotContent ofTemplates(List<ItemStackTemplate> stacks) {
-        if (stacks == null) return SlotContent.of();
+        if (stacks == null || stacks.isEmpty()) return SlotContent.of();
         return new SlotContent(stacks.stream().map(ItemStackTemplate::create).toList());
     }
 
